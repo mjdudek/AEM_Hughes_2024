@@ -11,16 +11,18 @@
 % ... Velocity (km/sec)
 % ... Angle (deg. from horizontal)
 % ... Combo? (1/on, 0/off)
-Diameter = [14000,50,50,20]; 
-Density = [2700,7800,2700,3300]; 
-Mass = [0,0,0,0];
-Velocity = [17,17,17,17];
-Angle = [45,45,45,20]; 
-Combo = [0];
+Diameter = [1,2,3,4,5,10,15,20,25,30,35,40,45,50,60,75,100,150,200,250,350,500,750,1000,1500,2500,3500,5000,7500,10000]; 
+Density = [2700,3300,4500,7800]; 
+Mass = 0;
+Velocity = [20];
+Angle = [45]; 
+Combo = [1];
 
-% Testing ------------------------------
+% ---------------------------------------------------------
+%% 1.0 Testing 
+% In this section, various projectile population characteristics are stored for reference and testing
 
-% % Theortical popultion ---------- 
+% % Theortical Popultion ---------- 
 % Diameter = [1,10,15,20,25,30,35,40,45,50,60,75,100,150,200,250,350,500,750,1000,1500,2500,3500,5000,7500,10000]; 
 % Density = [2700,3300,4500,7800]; 
 % Mass = 0;
@@ -37,43 +39,33 @@ Combo = [0];
 % Angle = [45,45,45,20]; 
 % Combo = [0];
 
-% % Terrestrial Analogs (x6) ---------- 
-% Tunguska, Chelyabinsk, Barringer, Ries Crater, Chicxulub, South Pole-Aitken Basin
-% Diameter = [60,22,40,1500,17500,315000]; 
-% Density = [2700,3300,7800,2700,2700,2700]; 
-% Mass = [0,0,0,0,0,0];
-% Velocity = [20,19,20,20,20,20];
-% Angle = [45,20,45,30,45,45]; 
-% Combo = [0];
-
-% % Large & Weak, slow/avg/fast ---------- 
-% % Output = [78605171.3093685,10000,0,10000,2700,223562.579416875,1.41371669411541e+15,0,0,0,45;78605171.3093685,10000,0,20000,2700,223562.579416875,1.41371669411541e+15,0,0,0,45;78605171.3093685,10000,0,30000,2700,223562.579416875,1.41371669411541e+15,0,0,0,45]
-% Diameter = 10000; 
-% Density = 2700; 
-% Mass = 0;
-% Velocity = [10, 20, 30];
-% Angle = 45; 
+% % Theortical Population (Abridged) ---------- 
+% Diameter = [10,100,1000,10000]; 
+% Density = [2700,3300,4500,7800]; 
+% Mass = [0];
+% Velocity = [10,20,30,40];
+% Angle = [45]; 
 % Combo = [1];
 
-% % Small & Strong, slow/avg/fast -------
-% % Output = [786051.713093685,1000,0,10000,8000,48778188.9687869,4188790204786.39,0,0,0,45;786051.713093685,1000,0,20000,8000,48778188.9687869,4188790204786.39,0,0,0,45;786051.713093685,1000,0,30000,8000,48778188.9687869,4188790204786.39,0,0,0,45]
-% Diameter = 1000; 
-% Density = 8000; 
+% % Theortical Popultion (Expanded) ---------- 
+% Diameter = [1,2,3,4,5,10,15,20,25,30,35,40,45,50,60,75,100,150,200,250,350,500,750,1000,1500,2500,3500,5000,7500,10000]; 
+% Density = [2700,3300,4500,7800]; 
 % Mass = 0;
-% Velocity = [10, 20, 30];
-% Angle = 45; 
+% Velocity = [20];
+% Angle = [45]; 
 % Combo = [1];
 
-% % Average & Average, slow/avg/fast ---
-% % Output = [1965.12928273421,50,0,10000,3300,491594.586164026,215984494.934298,0,0,0,45;1965.12928273421,50,0,20000,3300,491594.586164026,215984494.934298,0,0,0,45;1965.12928273421,50,0,30000,3300,491594.586164026,215984494.934298,0,0,0,45]
-% Diameter = 50; 
-% Density = 3300; 
-% Mass = 0;
-% Velocity = [10, 20, 30];
-% Angle = 45; 
+% % Meteor Crater Impactor ---------- 
+% Diameter = [50]; 
+% Density = [7800]; 
+% Mass = [0];
+% Velocity = [17];
+% Angle = [45]; 
 % Combo = [1];
 
-%% Populate projectile population
+% ---------------------------------------------------------
+%% 2.0 Populate projectile population
+% In this section, the FLAVRS matrix is calcualted and created
 
 % Build matrix of projectiles
 if Combo == 1
@@ -135,7 +127,9 @@ for k = 1:n.projectiles
     % ---------------------------------------------------------
 end
 
-FLAVRS
+%% 3.0 FLAVRS Output
+
+FLAVRS;
 
 % Display properties
 %sprintf("Diameter = " +FLAVRS(2)/1000+ " km \nDensity = " +FLAVRS(5)+ " kg/m3 \nMass = " +FLAVRS(7)+ " kg \nVelocity = " +FLAVRS(4)/1000+ " km/s \nAngle = " +FLAVRS(11)+ " deg")

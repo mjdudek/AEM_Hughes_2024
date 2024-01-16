@@ -13,7 +13,7 @@
 % ---------------------------------------------------------
 
 % Clean workspace
-clear all; clc; format long; 
+clear all; close all; clc; format long; 
 counter = 0;
 
 % Citations following this convention
@@ -40,8 +40,9 @@ set(0,'DefaultFigureWindowStyle','docked')
 % Import FLAVRS matrix (projectile population)
 % ... load in with FLAVRS format (n x 11) as .mat 
 % ... column = characterstic, row = projectile
-%FLAVRS = load('FLAVRS_TerrestrialAnalogPopulation.mat'); % Terrestrial analog popultion (est.2024)
-FLAVRS = load('FLAVRS_TheoreticalPopulation.mat'); % Theoretical Pop (est.2024)
+%FLAVRS = load('PROJECTILE_POPULATIONS/FLAVRS_TheoreticalPopulation.mat'); % Theoretical Pop
+%FLAVRS = load('PROJECTILE_POPULATIONS/FLAVRS_TerrestrialAnalogPopulation.mat'); % Terrestrial analog popultion 
+FLAVRS = load('FLAVRS_MeteorCraterAnalog.mat'); % Meteor Crater analog
 
 % Read FLAVRS strucutre
 FLAVRS = FLAVRS.FLAVRS;
@@ -73,7 +74,7 @@ input.z_scale(1) = 1;
 % Choose any or no atmospheric effects 
 % ... ['0' off \ '1' on]
 % ... ATMOS     atmospheric effects 
-% ... DVDT      projectile velocity
+% ... DVDT      projectile velocityFLAVRS(k,11
 % ... DADT      projectile angle of trajectory
 % ... DMDT      effect of ablation on the projectile
 % ... BREAK     effect of breakup on the projectile 
@@ -83,31 +84,68 @@ flag.DADT(1) = 1;
 flag.DMDT(1) = 1;
 flag.BREAK(1) = 1;
 
-% Flag options
-% ... vel       change in velocity equation     [1958, 1971, 1980, 1995, 2003, 2004, 2005]
-% ... shape     projectile shape factor         [1.21, 1.919] 
-% ... drag      drag coefficent                 [0.5, 1, 2, 1971, 2016]
-% ... ang       change in angle equations       [1971, 1980, 1993]
-% ... lift      lift coeffecient                [0, 0.001, 0.01, 0.1]
-% ... mass      change in mass equation         [1958, 1971, 1980, 1981]
-% ... htc       heat transfer coefficney        [0.02]
-% ... hao       heat of ablation                [1.89e6, 5e6, 8.01e6]
-flag.vel(1) = 1971; 
-flag.shape(1) = 1.21; 
-flag.drag(1) = 0.47; 
-flag.ang(1) = 1971; 
-flag.lift(1) = 0.01;
-flag.mass(1) = 1971;
-flag.htc(1) = 0.02;
-flag.hoa(1) = 5e6; 
-flag.zrho(1) = 1; 
+% % FLAG OPTION #1 (Set equations & parameters) ------------------------------------------------
+% 
+% % ... vel       change in velocity equation     [1958, 1971, 1980, 1993, 1995, 1996, 2003, 2004, 2005]
+% % ... shape     projectile shape factor         [1.21, 1.919] 
+% % ... drag      drag coefficent                 [0.5, 1, 2, 1971, 2016]
+% % ... ang       change in angle equations       [1971, 1980, 1993]
+% % ... lift      lift coeffecient                [0, 0.001, 0.01, 0.1]
+% % ... mass      change in mass equation         [1958, 1971, 1980, 1981]
+% % ... htc       heat transfer coefficney        [0.02]
+% % ... hao       heat of ablation                [1.89e6, 5e6, 8.01e6]
+% flag.vel(1) = 1971; 
+% flag.shape(1) = 1.21; 
+% flag.drag(1) = 0.47; 
+% flag.ang(1) = 1971; 
+% flag.lift(1) = 0.01;
+% flag.mass(1) = 1971;
+% flag.htc(1) = 0.02;
+% flag.hoa(1) = 5e6; 
+% flag.zrho(1) = 1; 
+
+% FLAG OPTION #2 (sensitivity testing) ---------------------------------------------------------
+
+% Spread of ensamble flags
+% % ... vel       change in velocity equation     [1958, 1971, 1980, 1993, 1995, 1996, 2003, 2004, 2005]; 
+% % ... shape     projectile shape factor         [1.21, 1.919, 4.28, 1995];
+% % ... drag      drag coefficent                 [0.47, 1, 2, 1971, 2011, 2016];
+% % ... ang       change in angle equations       [1971, 1980, 1993, 1996];
+% % ... lift      lift coeffecient                [0.001, 0.01, 1, 2, 1980];
+% % ... mass      change in mass equation         [1958, 1971, 1980, 1981];
+% % ... htc       heat transfer coefficney        [0.01, 0.02, 0.1, 0.6];
+% % ... hao       heat of ablation                [1.89e6, 5e6, 8.01e6]; 
+flag_vel = [1971]; 
+flag_shape = [1.21]; 
+flag_drag = [0.47]; 
+flag_ang = [1971];
+flag_lift = [0.01]; 
+flag_mass = [1971]; 
+flag_htc = [0.02]; 
+flag_hoa = [5e6]; 
+spread = combvec(flag_vel,flag_shape,flag_drag,flag_ang,flag_lift,flag_mass,flag_htc,flag_hoa).';
+
+% Loop to run each combination
+n_spread = size(spread,1);
+for sp = 1:n_spread
+    flag.vel(1) = spread(sp,1); 
+    flag.shape(1) = spread(sp,2);
+    flag.drag(1) = spread(sp,3);
+    flag.ang(1) = spread(sp,4);
+    flag.lift(1) = spread(sp,5);
+    flag.mass(1) = spread(sp,6);
+    flag.htc(1) = spread(sp,7);
+    flag.hoa(1) = spread(sp,8); 
+    flag.zrho(1) = 1; 
+
+% ---------------------------------------------------------------------------------------------------
 
 %% 1B. Planetary target variables
 % In this section the target characteristics are defined
 % ---------------------------------------------------------
 
 % Planetary target loop
-for m = 1:4
+for m = 1:4                 
     
 % Call target variables
 % ... g         gravity                 m/s2
@@ -152,7 +190,7 @@ elseif m == 4 % Moon
     rho_t = 2830; 
 end
 
-%% 4.1 Initial conditions
+%% 1C. Initial conditions
 
 for i = 1
 
@@ -178,6 +216,7 @@ for i = 1
 % ... time      s       travel time
 % ... vel       m/s     velocity
 % ... velb      m/s     velocity at breakup
+% ... velcr     m/s     critical velocity
 % ... velt      m/s     terminal velocity
 % ... xarea     m2      effective cross sectional area
 % ... Yi        Pa      yield strength
@@ -314,7 +353,7 @@ for k = 1:n.projectiles % outer loop
     end  
     % ---------------------------------------------------------
     % lift   
-    proj_lift(k,1) = flag.lift(1); 
+    proj_lift(k,1) = 0; 
     % ---------------------------------------------------------
     % heat transfer coefficent    
     proj_htc(k,1) = flag.htc(1);   
@@ -343,7 +382,7 @@ end % k = 1:n.projectiles % outer loop
 
 end % Initial conditoins
 
-%% 4.2 Atmospheric effects
+%% 2A. Atmospheric effects
 
 % Calculate atmospheric effects
 % =========================================================
@@ -627,6 +666,12 @@ if flag.DVDT == 1
         if k == 1; cite(length(cite)+1,:) = {'Chyba, Thomas, and Zahnle', '1993', '[TBD]'}; end
         proj_vel(k,j) = proj_vel(k,j-1) - (( (((1/2)*proj_drag(k,j)*proj_zrho(k,j)*proj_xarea(k,j-1)*(proj_vel(k,j-1)^2)) + ...
                                            ((g.target(1)/proj_mass(k,j-1))*(sind(proj_ang(k,j-1)))))) / input.step_mod(1)) / proj_mass(k,j-1);
+
+    elseif flag.vel(1) == 1996
+        % ... calculate according to Artem'eva and Shuvalov (1996)
+        if k == 1; cite(length(cite)+1,:) = {'Artemeva and Shuvalov', '1996', '[TBD]'}; end
+        proj_vel(k,j) = proj_vel(k,j-1) - (( (proj_drag(k,j)) * (( proj_zrho(k,j)*proj_xarea(k,j-1)*((proj_vel(k,j-1))^2) ) / ...
+                                          ( 2*(proj_mass(k,j-1)))) )/input.step_mod(1));
                                       
     elseif flag.vel(1) == 1995
         % ... calculate according to Svetsov, Nemtchinov, and Teterev (1995)
@@ -685,7 +730,15 @@ end
 
 for i = 1
 
+    if flag.lift(1) == 1980
+        % ... calculate according to Melosh (1980)
+        proj_lift(k,j) = (2*proj_mass(k,j)*g.target*((cosd(90-proj_ang(k,j-1)))/(proj_zrho(k,j)))*proj_xarea(k,j-1)*((proj_vel(k,j))^2));
+
+    else
+
     proj_lift(k,j) = flag.lift(1);
+
+    end
     
 end
 
@@ -716,6 +769,14 @@ if flag.DADT == 1
                 - ( ((proj_vel(k,j))*cosd(proj_ang(k,j-1))) / (R.target + proj_alt(k,j)))) ...
                 / input.step_mod(1);
     proj_ang(k,j) = proj_ang(k,j-1) + abs(a);  
+
+    elseif flag.ang(1) == 1996
+    % ... calcualte according to Artem-eva and Shuvaloc (1996)
+    if k == 1; cite(length(cite)+1,:) = {'Artem-eva and Shuvaloc', '1996', '[TBD]'}; end
+    proj_ang(k,j) = proj_ang(k,j-1) + (( (( 2*proj_mass(k,j-1)*g.target*cosd(proj_ang(k,j-1))) - ...
+                                        ( proj_lift(k,j)*(proj_zrho(k,j))*proj_xarea(k,j-1)* (((proj_vel(k,j))^2) ))) / ...
+                                        (2*proj_mass(k,j-1)*(proj_vel(k,j)))) ...
+                                        / input.step_mod(1));
     
     end
     
@@ -901,7 +962,7 @@ count_out = count_out + 1;
 end % k = 1:n.projectiles % outer loop
 
 % =========================================================
-% Crater formation
+%% 2B. Crater formation
 
 % Set global values and matrices to be populated, in alphabetical order
 % ... (1) column    #    	time step of altitude = 0
@@ -1048,13 +1109,24 @@ end % n_projectiles
 % ... (12) crater_diam  m       final crater diameter
 % ... (13) crater_depth m       final crater depth
 
-stats = horzcat(FLAVRS(:,5),FLAVRS(:,2),FLAVRS(:,7),FLAVRS(:,4),FLAVRS(:,3),...
-                impact(:,11), impact(:,5), impact(:,6), impact(:,8)/1000, impact(:,2),...
-                (crater(:,1)*1000),(crater(:,3)*1000),(crater(:,4)*1000),...
-                crater(:,5),(crater(:,6)));
+stats = horzcat(FLAVRS(:,5), ...
+                FLAVRS(:,2), ...
+                FLAVRS(:,7), ...
+                FLAVRS(:,4), ...
+                FLAVRS(:,3),...
+                impact(:,11), ...
+                impact(:,5), ...
+                impact(:,6), ...
+                impact(:,8)/1000, ...
+                impact(:,2),...
+                (crater(:,1)*1000), ...
+                (crater(:,3)*1000), ...
+                (crater(:,4)*1000),...
+                crater(:,5), ...
+                (crater(:,6)));
         
 % =========================================================
-% Save all target variables
+%% 2C. Save all target variables
 
 if m == 1 % Venus
     Valt = proj_alt;      Vang = proj_ang;          Vdist = proj_dist;      Vreyn = proj_reyn;
@@ -1093,6 +1165,58 @@ elseif m == 4 % Moon
 end
 
 % =========================================================
-% End looping
+% End inner loops
 
 end % planetary target loop
+
+% ------------------------------------------------------------------------
+%% Figure creation (spread of the ensemble)
+
+% Color Codes
+% Dark red, [0.6350 0.0780 0.1840]
+% Orange, [0.8500 0.3250 0.0980]
+% Gold, [0.9290 0.6940 0.1250]
+% Green, [0.4660 0.6740 0.1880]
+% Light blue, [0.3010 0.7450 0.9330]
+% Dark blue, [0 0.4470 0.7410]
+% Purple, [0.4940 0.1840 0.5560]
+color_spread = [0.6350 0.0780 0.1840; 
+                0.8500 0.3250 0.0980; 
+                0.9290 0.6940 0.1250; 
+                0.4660 0.6740 0.1880; 
+                0.3010 0.7450 0.9330; 
+                0 0.4470 0.7410;
+                0.4940 0.1840 0.5560; 
+                0 0 0];
+
+% figure(4 & 5)
+% ------------
+subplot(1,3,1)
+plot(Evel.'/1000,Ealt.'/1000,'-','LineWidth',1.5); hold on; 
+xlim([0 20]); ylim([0 40]); xlabel('Velocity (km/s)'); ylabel('Altitude (km)');
+% ------------
+subplot(1,3,2)
+plot(Emassr.',Ealt.'/1000.','-','LineWidth',1.5); hold on; 
+xlim([0 105]); ylim([0 40]); xlabel('Mass Remaining (%)');
+% legends
+% ... equations
+%legend('1958','1971','1980','1993','1995','1996','2003','2004','2005','Location','northwest') % Velocity
+%legend('1971','1980','1993','1996','Location','northwest') % Angle
+%legend('1958', '1971', '1980', '1983', '1993', '2004', 'Location','northwest') % Mass
+% ... parameters
+%legend('1.21','1.919','4.28','1995','Location','northwest') % Shape factor
+%legend('0.47', '1', '2', '1971', '2011', '2016', 'Location','northwest') % Drag [0.47, 1, 2, 1971, 2011, 2016]
+%legend('1.89e6', '5e6', '8.01e6','Location','northwest') % HOA [1.89e6, 5e6, 8.01e6]
+%legend('0.01','0.02','0.1','0.6','Location','northwest') % CHT [0.01,0.02,0.1,0.6]
+legend('0.001', '0.01', '1', '2', '1980','Location','northwest') % CL [0.001, 0.01, 1, 2, 1980]
+% ------------
+subplot(1,3,3)
+plot(Eang.',Ealt.'/1000.','-','LineWidth',1.5); hold on; 
+xlim([0 90]); ylim([0 40]); xlabel('Angle of Trajectory (deg.)');
+% ------------
+
+end % Flag Option #2
+
+% =========================================================
+
+
